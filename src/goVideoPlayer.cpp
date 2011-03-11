@@ -673,7 +673,7 @@ void goVideoPlayer::setPan(float pan)
 #ifdef OF_VIDEO_PLAYER_QUICKTIME
     //--------------------------------------
 
-    SetMovieAudioBalance(moviePtr, pan, 0);
+//    SetMovieAudioBalance(moviePtr, pan, 0);
     //--------------------------------------
 #else
     //--------------------------------------
