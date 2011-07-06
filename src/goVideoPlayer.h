@@ -8,7 +8,7 @@
 #ifdef OF_VIDEO_PLAYER_GSTREAMER
 #include "ofGstUtils.h"
 #else
-#include "ofQtUtils.h"
+#include "goQtUtils.h"
 #endif
 
 
