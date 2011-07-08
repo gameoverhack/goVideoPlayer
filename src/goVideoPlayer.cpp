@@ -813,7 +813,7 @@ void goVideoPlayer::setFrame(int frame)
     if (frameRate > 0)
     {
         double frameDuration = 1 / frameRate;
-        TimeValue t = (TimeValue)(frame * frameDuration * movieTimeScale);
+        TimeValue t = (TimeValue)ceil(frame * frameDuration * movieTimeScale); // gameover -> ceil got rid of choking on certain time values but is this accurate??
         SetMovieTimeValue(moviePtr, t);
         MoviesTask(moviePtr,0);
     }
@@ -897,10 +897,11 @@ int goVideoPlayer::getCurrentFrame()
     float  framePosInFloat = ((float)getTotalNumFrames() * pos);
     int    framePosInInt = (int)framePosInFloat;
     float  floatRemainder = (framePosInFloat - framePosInInt);
+	
     if (floatRemainder > 0.5f) framePosInInt = framePosInInt + 1;
     //frame = (int)ceil((getTotalNumFrames() * getPosition()));
     frame = framePosInInt;
-
+	//cout << "pos " << pos << " frame " << frame << " framefloat: " << framePosInFloat << " frameInt " << framePosInInt << " remanider " << floatRemainder << endl;
 
 
     return frame;
@@ -1049,6 +1050,10 @@ void goVideoPlayer::setPaused(bool _bPause)
 #endif
     //--------------------------------------
 
+}
+
+void goVideoPlayer::togglePaused() {
+	setPaused(!bPaused);
 }
 
 //------------------------------------

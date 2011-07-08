@@ -67,7 +67,8 @@ public:
     void				resetAnchor();								//resets the anchor to (0, 0)
 
     void 				setPaused(bool bPause);
-
+	void				togglePaused();
+	
     int					getCurrentFrame();
     int					getTotalNumFrames();
 
