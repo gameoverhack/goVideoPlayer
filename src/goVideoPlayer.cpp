@@ -119,6 +119,8 @@ OSErr 	DrawCompleteProc(Movie theMovie, long refCon)
 
     goVideoPlayer * ofvp = (goVideoPlayer *)refCon;
 
+	//cout << ofvp->getCurrentFileName() << endl;
+	
 #if defined(TARGET_OSX) && defined(__BIG_ENDIAN__)
     convertPixels(ofvp->offscreenGWorldPixels, ofvp->pixels, ofvp->width, ofvp->height);
 #endif
@@ -165,6 +167,10 @@ goVideoPlayer::goVideoPlayer ()
 
 }
 
+//---------------------------------------------------------------------------
+string goVideoPlayer::getCurrentFileName() {
+	return currentFileName;
+}
 //---------------------------------------------------------------------------
 unsigned char * goVideoPlayer::getPixels()
 {
@@ -277,6 +283,8 @@ void goVideoPlayer::closeMovie()
         DisposeMovieDrawingCompleteUPP(myDrawCompleteProc);
 
         moviePtr = NULL;
+		currentFileName = "";
+		
         //if(allocated)	delete[] pixels;
         //if(allocated)	delete[] offscreenGWorldPixels;
         // tex.clear();
@@ -388,10 +396,11 @@ void goVideoPlayer::createImgMemAndGWorld()
 
 
 //---------------------------------------------------------------------------
-bool goVideoPlayer::loadMovie(string name)
+bool goVideoPlayer::loadMovie(string name, bool loadedInThread)
 {
 
-
+	currentFileName = name;
+	
     //--------------------------------------
 #ifdef OF_VIDEO_PLAYER_QUICKTIME
     //--------------------------------------
@@ -453,33 +462,12 @@ bool goVideoPlayer::loadMovie(string name)
     }
 
     //----------------- callback method
-    myDrawCompleteProc = NewMovieDrawingCompleteUPP (DrawCompleteProc);
-    SetMovieDrawingCompleteProc (moviePtr, movieDrawingCallWhenChanged,  myDrawCompleteProc, (long)this);
-
-
-    nFrames = 0;
-    getTotalNumFrames();
-    /*
-    	// ------------- get the total # of frames:
-    	nFrames				= 0;
-    	TimeValue			curMovieTime;
-    	curMovieTime		= 0;
-    	TimeValue			duration;
-
-    	//OSType whichMediaType	= VIDEO_TYPE; // mingw chokes on this
-    	OSType whichMediaType	= FOUR_CHAR_CODE('vide');
-
-    	short flags				= nextTimeMediaSample + nextTimeEdgeOK;
-
-    	while( curMovieTime >= 0 ) {
-    		nFrames++;
-    		GetMovieNextInterestingTime(moviePtr,flags,1,&whichMediaType,curMovieTime,0,&curMovieTime,&duration);
-    		flags = nextTimeMediaSample;
-    	}
-    	nFrames--; // there's an extra time step at the end of themovie
-
-
-    */
+	if (!loadedInThread) {
+		myDrawCompleteProc = NewMovieDrawingCompleteUPP (DrawCompleteProc);
+		SetMovieDrawingCompleteProc (moviePtr, movieDrawingCallWhenChanged,  myDrawCompleteProc, (long)this);
+		nFrames = 0;
+		getTotalNumFrames(); // hmmm...putting this here so things load uber quick in threads but might break things if you check duration before playing?
+	}
 
     // ------------- get some pixels in there ------
     GoToBeginningOfMovie(moviePtr);
@@ -1060,6 +1048,9 @@ void goVideoPlayer::togglePaused() {
 void goVideoPlayer::forceTextureUpload()  	// added by gameover
 {
 
+	myDrawCompleteProc = NewMovieDrawingCompleteUPP (DrawCompleteProc);
+    SetMovieDrawingCompleteProc (moviePtr, movieDrawingCallWhenChanged,  myDrawCompleteProc, (long)this);
+	
     tex.allocate(width,height,GL_RGBA);
 
 #if defined(TARGET_OSX) && defined(__BIG_ENDIAN__)

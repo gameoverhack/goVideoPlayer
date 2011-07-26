@@ -27,7 +27,7 @@ public:
 
     void				forceTextureUpload(); // added by gameover
 
-    bool 				loadMovie(string name);
+    bool 				loadMovie(string name, bool loadedInThread = false);
     void 				closeMovie();
     void 				close();
 
@@ -78,7 +78,9 @@ public:
 
     float 				getHeight();
     float 				getWidth();
-
+	
+	string				getCurrentFileName();	// added by gameover
+	
     //--------------------------------------
 #ifdef OF_VIDEO_PLAYER_QUICKTIME
     //--------------------------------------
@@ -118,7 +120,7 @@ protected:
     bool 				bPaused;
     bool 				bIsFrameNew;			// if we are new
 
-
+	string				currentFileName;
 
 
 };
