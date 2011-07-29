@@ -282,9 +282,9 @@ void goVideoPlayer::closeMovie()
         DisposeMovie (moviePtr);
         DisposeMovieDrawingCompleteUPP(myDrawCompleteProc);
 
-        moviePtr = NULL;
+        moviePtr		= NULL;
 		currentFileName = "";
-		
+		nFrames			= 0;
         //if(allocated)	delete[] pixels;
         //if(allocated)	delete[] offscreenGWorldPixels;
         // tex.clear();
