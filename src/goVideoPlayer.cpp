@@ -276,9 +276,10 @@ void goVideoPlayer::closeMovie()
 #ifdef OF_VIDEO_PLAYER_QUICKTIME
     //--------------------------------------
 
-    if (bLoaded == true)
-    {
+    //if (bLoaded == true)
+   // {
 
+		cout << "Closing: " << currentFileName << endl;
         DisposeMovie (moviePtr);
         DisposeMovieDrawingCompleteUPP(myDrawCompleteProc);
 
@@ -291,7 +292,7 @@ void goVideoPlayer::closeMovie()
         //allocated = false;
         // if ((offscreenGWorld)) DisposeGWorld((offscreenGWorld));
 
-    }
+  //  }
 
     //--------------------------------------
 #else
@@ -320,7 +321,7 @@ goVideoPlayer::~goVideoPlayer()
     //--------------------------------------
 #ifdef OF_VIDEO_PLAYER_QUICKTIME
     //--------------------------------------
-
+	cout << "Deleteing: " << currentFileName << endl;
     closeMovie();
     if(allocated)	{
         delete [] pixels;
