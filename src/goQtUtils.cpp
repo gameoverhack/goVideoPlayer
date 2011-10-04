@@ -9,12 +9,12 @@ static bool bQuicktimeInitialized = false;
 //----------------------------------------
 void initializeQuicktime(){
 	if (bQuicktimeInitialized == false){
-		
+
 		//----------------------------------
 		// do we have quicktime installed at all?
 		// http://www.apple.com/quicktime/download/win.html
 		// can gestalt help with versions, or is that only after init?
-		
+
 		OSErr myErr 	= noErr;
 #ifdef TARGET_WIN32
 		myErr = InitializeQTML(0);
@@ -30,7 +30,7 @@ void initializeQuicktime(){
 			ofLog(OF_LOG_ERROR, "sorry, there is a problem with quicktime starting up... please check!");
 			OF_EXIT_APP(0);
 		}
-		
+
 		bQuicktimeInitialized = true;
 	}
 }
@@ -49,20 +49,24 @@ void closeQuicktime(){
 
 //----------------------------------------
 void convertPixels(unsigned char * gWorldPixels, unsigned char * rgbPixels, int w, int h){
-	
+
 	// ok for macs?
 	// ok for intel macs?
-	
+
 	int * rgbaPtr 			= (int *) gWorldPixels;
+#ifdef USE_ALPHA_CHANNELS
 	pix32 * rgbPtr 			= (pix32 *) rgbPixels;
+#else
+    pix24 * rgbPtr 			= (pix24 *) rgbPixels;
+#endif
 	unsigned char * rgbaStart;
-	
+
 	//	putting in the boolean, so we can work on
 	//	0,0 in top right...
 	//	bool bFlipVertically 	= true;
-	
+
 	bool bFlipVertically 	= false;
-	
+
 	// -------------------------------------------
 	// we flip vertically because the 0,0 position in OF
 	// is the bottom left (not top left, like processing)
@@ -70,7 +74,7 @@ void convertPixels(unsigned char * gWorldPixels, unsigned char * rgbPixels, int 
 	// if we upload and drawf the data as is
 	// it will be upside-down....
 	// -------------------------------------------
-	
+#ifdef USE_ALPHA_CHANNELS
 	if (!bFlipVertically){
 		//----- argb->rgb
 		cout << "flip vertical" <<endl;
@@ -96,6 +100,31 @@ void convertPixels(unsigned char * gWorldPixels, unsigned char * rgbPixels, int 
 			}
 		}
 	}
+#else
+	if (!bFlipVertically){
+		//----- argb->rgb
+		for (int i = 0; i < h; i++){
+			pix24 * rgbPtr 			= (pix24 *) rgbPixels + ((i) * w);
+			for (int j = 0; j < w; j++){
+				rgbaStart = (unsigned char *)rgbaPtr;
+				memcpy (rgbPtr, rgbaStart+1, sizeof(pix24));
+				rgbPtr++;
+				rgbaPtr++;
+			}
+		}
+	} else {
+		//----- flip while argb->rgb
+		for (int i = 0; i < h; i++){
+			pix24 * rgbPtr 			= (pix24 *) rgbPixels + ((h-i-1) * w);
+			for (int j = 0; j < w; j++){
+				rgbaStart = (unsigned char *)rgbaPtr;
+				memcpy (rgbPtr, rgbaStart+1, sizeof(pix24));
+				rgbPtr++;
+				rgbaPtr++;
+			}
+		}
+	}
+#endif
 }
 
 
@@ -119,15 +148,15 @@ Boolean SeqGrabberModalFilterUPP (DialogPtr theDialog, const EventRecord *theEve
 #define   kCharacteristicIsAnMpegTrack			FOUR_CHAR_CODE('mpeg')
 
 /*
- 
+
  Calculate the static frame rate for a given movie.
- 
+
  */
 void MovieGetStaticFrameRate(Movie inMovie, double *outStaticFrameRate)
 {
-	
+
 	*outStaticFrameRate = 0;
-	
+
 	Media movieMedia;
 	MediaHandler movieMediaHandler;
 	/* get the media identifier for the media that contains the first
@@ -162,18 +191,18 @@ void MovieGetStaticFrameRate(Movie inMovie, double *outStaticFrameRate)
 }
 
 /*
- 
+
  Get the media identifier for the media that contains the first
  video track's sample data, and also get the media handler for
  this media.
- 
+
  */
 void MovieGetVideoMediaAndMediaHandler(Movie inMovie, Media *outMedia, MediaHandler *outMediaHandler)
 {
-	
+
 	*outMedia = NULL;
 	*outMediaHandler = NULL;
-	
+
 	/* get first video track */
 	Track videoTrack = GetMovieIndTrackType(inMovie, 1, kCharacteristicHasVideoFrameRate,
 											movieTrackCharacteristic | movieTrackEnabledOnly);
@@ -190,14 +219,14 @@ void MovieGetVideoMediaAndMediaHandler(Movie inMovie, Media *outMedia, MediaHand
 }
 
 /*
- 
+
  Return true if media handler reference is from the MPEG-1/MPEG-2 media handler.
  Return false otherwise.
- 
+
  */
 OSErr IsMPEGMediaHandler(MediaHandler inMediaHandler, Boolean *outIsMPEG)
 {
-	
+
   	/* is this the MPEG-1/MPEG-2 media handler? */
 	return((OSErr) MediaHasCharacteristic(inMediaHandler,
 										  kCharacteristicIsAnMpegTrack,
@@ -205,18 +234,18 @@ OSErr IsMPEGMediaHandler(MediaHandler inMediaHandler, Boolean *outIsMPEG)
 }
 
 /*
- 
+
  Given a reference to the media handler used for media in a MPEG-1/MPEG-2
  track, return the static frame rate.
- 
+
  */
 ComponentResult MPEGMediaGetStaticFrameRate(MediaHandler inMPEGMediaHandler, Fixed *outStaticFrameRate)
 {
 	*outStaticFrameRate = 0;
-	
+
 	MHInfoEncodedFrameRateRecord encodedFrameRate;
 	Size encodedFrameRateSize = sizeof(encodedFrameRate);
-	
+
     /* get the static frame rate */
 	ComponentResult err = MediaGetPublicInfo(inMPEGMediaHandler,
 											 kMHInfoEncodedFrameRate,
@@ -227,33 +256,33 @@ ComponentResult MPEGMediaGetStaticFrameRate(MediaHandler inMPEGMediaHandler, Fix
 		/* return frame rate at which the track was encoded */
 		*outStaticFrameRate = encodedFrameRate.encodedFrameRate;
 	}
-	
+
 	return err;
 }
 
 /*
- 
+
  Given a reference to the media that contains the sample data for a track,
  calculate the static frame rate.
- 
+
  */
 OSErr MediaGetStaticFrameRate(Media inMovieMedia, double *outFPS)
 {
 	*outFPS = 0;
-	
+
     /* get the number of samples in the media */
 	long sampleCount = GetMediaSampleCount(inMovieMedia);
 	OSErr err = GetMoviesError();
-	
+
 	if (sampleCount && err == noErr)
 	{
 		/* find the media duration */
-		
+
 		//Quicktime 7.0 code
 		//TimeValue64 duration = GetMediaDisplayDuration(inMovieMedia);
 		TimeValue64 duration = GetMediaDuration(inMovieMedia);
-		
-		
+
+
 		err = GetMoviesError();
 		if (err == noErr)
 		{
@@ -269,7 +298,7 @@ OSErr MediaGetStaticFrameRate(Media inMovieMedia, double *outFPS)
 			}
 		}
 	}
-	
+
 	return err;
 }
 
@@ -286,14 +315,14 @@ OSErr GetSettingsPreference(CFStringRef inKey, UserData *outUserData)
 	Handle            theHandle = NULL;
 	UserData          theUserData = NULL;
 	OSErr             err = paramErr;
-	
+
 	// read the new setttings from our preferences
 	theCFSettings = CFPreferencesCopyAppValue(inKey,
 											  kCFPreferencesCurrentApplication);
 	if (theCFSettings) {
 		err = PtrToHand(CFDataGetBytePtr((CFDataRef)theCFSettings), &theHandle,
 						CFDataGetLength((CFDataRef)theCFSettings));
-		
+
 		CFRelease(theCFSettings);
 		if (theHandle) {
 			err = NewUserDataFromHandle(theHandle, &theUserData);
@@ -303,7 +332,7 @@ OSErr GetSettingsPreference(CFStringRef inKey, UserData *outUserData)
 			DisposeHandle(theHandle);
 		}
 	}
-	
+
 	return err;
 }
 
@@ -315,18 +344,18 @@ OSErr SaveSettingsPreference(CFStringRef inKey, UserData inUserData)
 	CFDataRef theCFSettings;
 	Handle    hSettings;
 	OSErr     err;
-	
+
 	if (NULL == inUserData) return paramErr;
-	
+
 	hSettings = NewHandle(0);
 	err = MemError();
-	
+
 	if (noErr == err) {
 		err = PutUserDataIntoHandle(inUserData, hSettings);
-		
+
 		if (noErr == err) {
 			HLock(hSettings);
-			
+
 			theCFSettings = CFDataCreate(kCFAllocatorDefault,
 										 (UInt8 *)*hSettings,
 										 GetHandleSize(hSettings));
@@ -337,10 +366,10 @@ OSErr SaveSettingsPreference(CFStringRef inKey, UserData inUserData)
 				CFRelease(theCFSettings);
 			}
 		}
-		
+
 		DisposeHandle(hSettings);
 	}
-	
+
 	return err;
 }
 

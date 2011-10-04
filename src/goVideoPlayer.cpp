@@ -120,7 +120,7 @@ OSErr 	DrawCompleteProc(Movie theMovie, long refCon)
     goVideoPlayer * ofvp = (goVideoPlayer *)refCon;
 
 	//cout << ofvp->getCurrentFileName() << endl;
-	
+
 #if defined(TARGET_OSX) && defined(__BIG_ENDIAN__)
     convertPixels(ofvp->offscreenGWorldPixels, ofvp->pixels, ofvp->width, ofvp->height);
 #endif
@@ -276,10 +276,10 @@ void goVideoPlayer::closeMovie()
 #ifdef OF_VIDEO_PLAYER_QUICKTIME
     //--------------------------------------
 
-    //if (bLoaded == true)
-   // {
+    if (bLoaded == true)
+    {
 
-		cout << "Closing: " << currentFileName << endl;
+		//cout << "Closing: " << currentFileName << endl;
         DisposeMovie (moviePtr);
         DisposeMovieDrawingCompleteUPP(myDrawCompleteProc);
 
@@ -292,7 +292,7 @@ void goVideoPlayer::closeMovie()
         //allocated = false;
         // if ((offscreenGWorld)) DisposeGWorld((offscreenGWorld));
 
-  //  }
+    }
 
     //--------------------------------------
 #else
@@ -321,7 +321,7 @@ goVideoPlayer::~goVideoPlayer()
     //--------------------------------------
 #ifdef OF_VIDEO_PLAYER_QUICKTIME
     //--------------------------------------
-	cout << "Deleteing: " << currentFileName << endl;
+	//cout << "Deleteing: " << currentFileName << endl;
     closeMovie();
     if(allocated)	{
         delete [] pixels;
@@ -333,6 +333,7 @@ goVideoPlayer::~goVideoPlayer()
     }
     if ((offscreenGWorld)) DisposeGWorld((offscreenGWorld));
 
+    //closeQuicktime();
     //--------------------------------------
 #else
     //--------------------------------------
@@ -401,7 +402,7 @@ bool goVideoPlayer::loadMovie(string name, bool loadedInThread)
 {
 
 	currentFileName = name;
-	
+
     //--------------------------------------
 #ifdef OF_VIDEO_PLAYER_QUICKTIME
     //--------------------------------------
@@ -662,7 +663,7 @@ void goVideoPlayer::setPan(float pan)
 #ifdef OF_VIDEO_PLAYER_QUICKTIME
     //--------------------------------------
 
-    SetMovieAudioBalance(moviePtr, pan, 0);
+    //SetMovieAudioBalance(moviePtr, pan, 0);
     //--------------------------------------
 #else
     //--------------------------------------
@@ -886,7 +887,7 @@ int goVideoPlayer::getCurrentFrame()
     float  framePosInFloat = ((float)getTotalNumFrames() * pos);
     int    framePosInInt = (int)framePosInFloat;
     float  floatRemainder = (framePosInFloat - framePosInInt);
-	
+
     if (floatRemainder > 0.5f) framePosInInt = framePosInInt + 1;
     //frame = (int)ceil((getTotalNumFrames() * getPosition()));
     frame = framePosInInt;
@@ -1051,7 +1052,7 @@ void goVideoPlayer::forceTextureUpload()  	// added by gameover
 
 	myDrawCompleteProc = NewMovieDrawingCompleteUPP (DrawCompleteProc);
     SetMovieDrawingCompleteProc (moviePtr, movieDrawingCallWhenChanged,  myDrawCompleteProc, (long)this);
-	
+
     tex.allocate(width,height,GL_RGBA);
 
 #if defined(TARGET_OSX) && defined(__BIG_ENDIAN__)

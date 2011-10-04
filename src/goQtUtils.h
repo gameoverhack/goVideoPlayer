@@ -27,15 +27,22 @@
 #define p2cstr(aStr) CFStringGetCStringPtr(CFStringCreateWithPascalString(NULL, aStr, kCFStringEncodingMacRoman),kCFStringEncodingMacRoman)
 #endif
 
+#ifdef USE_ALPHA_CHANNELS
 //-------------------------- helpful for rgba->rgb conversion
 typedef struct{
-	unsigned char a;	
+	unsigned char a;
 	unsigned char r;
 	unsigned char g;
 	unsigned char b;
 } pix32;
-
-
+#else
+//-------------------------- helpful for rgba->rgb conversion
+typedef struct{
+	unsigned char r;
+	unsigned char g;
+	unsigned char b;
+} pix24;
+#endif
 
 //----------------------------------------
 

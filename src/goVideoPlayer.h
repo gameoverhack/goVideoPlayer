@@ -4,6 +4,8 @@
 #include "ofConstants.h"
 #include "ofTexture.h"
 
+// if you want to use alpha channels uncomment this
+#define USE_ALPHA_CHANNELS
 
 #ifdef OF_VIDEO_PLAYER_GSTREAMER
 #include "ofGstUtils.h"
@@ -24,7 +26,9 @@ public:
 
     goVideoPlayer ();
     virtual ~goVideoPlayer();
-
+#if OF_VERSION > 6
+    ofPixelsRef         getPixelsRef(){ofPixels p; return p;}; // TODO: make this work proper like
+#endif
     void				forceTextureUpload(); // added by gameover
 
     bool 				loadMovie(string name, bool loadedInThread = false);
@@ -68,7 +72,7 @@ public:
 
     void 				setPaused(bool bPause);
 	void				togglePaused();
-	
+
     int					getCurrentFrame();
     int					getTotalNumFrames();
 
@@ -78,9 +82,9 @@ public:
 
     float 				getHeight();
     float 				getWidth();
-	
+
 	string				getCurrentFileName();	// added by gameover
-	
+
     //--------------------------------------
 #ifdef OF_VIDEO_PLAYER_QUICKTIME
     //--------------------------------------
