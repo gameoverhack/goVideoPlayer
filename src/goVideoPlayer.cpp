@@ -122,13 +122,13 @@ OSErr 	DrawCompleteProc(Movie theMovie, long refCon)
 	//cout << ofvp->getCurrentFileName() << endl;
 
 #if defined(TARGET_OSX) && defined(__BIG_ENDIAN__)
-    convertPixels(ofvp->offscreenGWorldPixels, ofvp->pixels, ofvp->width, ofvp->height);
+    convertPixels(ofvp->offscreenGWorldPixels, ofvp->pixels, ofvp->width, ofvp->height, ofvp->pixelType);
 #endif
 
     ofvp->bHavePixelsChanged = true;
     if (ofvp->bUseTexture == true)
     {
-        ofvp->tex.loadData(ofvp->pixels, ofvp->width, ofvp->height, GL_RGBA);
+        ofvp->tex.loadData(ofvp->pixels, ofvp->width, ofvp->height, ofvp->pixelType);
     }
 
     return noErr;
@@ -239,7 +239,7 @@ void goVideoPlayer::idleMovie()
             bHavePixelsChanged = true;
             width = gstUtils.getWidth();
             height = gstUtils.getHeight();
-            tex.loadData(gstUtils.getPixels(), width, height, GL_RGBA);
+            tex.loadData(gstUtils.getPixels(), width, height, pixelType);
         }
 
         //--------------------------------------------------------------
@@ -363,13 +363,25 @@ void goVideoPlayer::createImgMemAndGWorld()
     movieRect.bottom 		= height;
     movieRect.right 		= width;
     offscreenGWorldPixels 	= new unsigned char[4 * width * height + 32];
-    pixels					= new unsigned char[width*height*4];
+
+    if (pixelType == GO_TV_RGBA) {
+        pixels					= new unsigned char[width*height*4];
 
 #if defined(TARGET_OSX) && defined(__BIG_ENDIAN__)
-    QTNewGWorldFromPtr (&(offscreenGWorld), k32ARGBPixelFormat, &(movieRect), NULL, NULL, 0, (offscreenGWorldPixels), 4 * width);
+        QTNewGWorldFromPtr (&(offscreenGWorld), k32ARGBPixelFormat, &(movieRect), NULL, NULL, 0, (offscreenGWorldPixels), 4 * width);
 #else
-    QTNewGWorldFromPtr (&(offscreenGWorld), k32RGBAPixelFormat, &(movieRect), NULL, NULL, 0, (pixels), 4 * width);
+        QTNewGWorldFromPtr (&(offscreenGWorld), k32RGBAPixelFormat, &(movieRect), NULL, NULL, 0, (pixels), 4 * width);
 #endif
+    } else {
+        pixels					= new unsigned char[width*height*3];
+
+        #if defined(TARGET_OSX) && defined(__BIG_ENDIAN__)
+            QTNewGWorldFromPtr (&(offscreenGWorld), k32ARGBPixelFormat, &(movieRect), NULL, NULL, 0, (offscreenGWorldPixels), 4 * width);
+        #else
+            QTNewGWorldFromPtr (&(offscreenGWorld), k24RGBPixelFormat, &(movieRect), NULL, NULL, 0, (pixels), 3 * width);
+        #endif
+    }
+
 
     LockPixels(GetGWorldPixMap(offscreenGWorld));
     SetGWorld (offscreenGWorld, NULL);
@@ -379,12 +391,22 @@ void goVideoPlayer::createImgMemAndGWorld()
     {
         // create the texture, set the pixels to black and
         // upload them to the texture (so at least we see nothing black the callback)
-        tex.allocate(width,height,GL_RGBA);
-        memset(pixels, 0, width*height*4);
-        tex.loadData(pixels, width, height, GL_RGBA);
-        //allocated = true;     // if it's done here then it only gets allocated if
-                                //we're using a texture and therefore the pixels
-                                // don't get deleted when you close the movie
+        if (pixelType == GO_TV_RGBA) {
+            tex.allocate(width,height,pixelType);
+            memset(pixels, 0, width*height*4);
+            tex.loadData(pixels, width, height, pixelType);
+            //allocated = true;     // if it's done here then it only gets allocated if
+                                    //we're using a texture and therefore the pixels
+                                    // don't get deleted when you close the movie
+        } else {
+            tex.allocate(width,height,pixelType);
+            memset(pixels, 0, width*height*3);
+            tex.loadData(pixels, width, height, pixelType);
+            //allocated = true;     // if it's done here then it only gets allocated if
+                                    //we're using a texture and therefore the pixels
+                                    // don't get deleted when you close the movie
+
+        }
     }
 
     allocated = true; // moved by gameover from above
@@ -482,7 +504,7 @@ bool goVideoPlayer::loadMovie(string name, bool loadedInThread)
 
     if (bUseTexture == true)
     {
-        tex.loadData(pixels, width, height, GL_RGBA);
+        tex.loadData(pixels, width, height, pixelType);
     }
 
     bStarted 				= false;
@@ -528,8 +550,8 @@ bool goVideoPlayer::loadMovie(string name, bool loadedInThread)
     {
         if(bUseTexture)
         {
-            tex.allocate(gstUtils.getWidth(),gstUtils.getHeight(),GL_RGBA,false);
-            tex.loadData(gstUtils.getPixels(), gstUtils.getWidth(), gstUtils.getHeight(), GL_RGBA);
+            tex.allocate(gstUtils.getWidth(),gstUtils.getHeight(),pixelType,false);
+            tex.loadData(gstUtils.getPixels(), gstUtils.getWidth(), gstUtils.getHeight(), pixelType);
         }
         bLoaded = true;
         allocated = true;
@@ -579,7 +601,7 @@ void goVideoPlayer::start()
         bHavePixelsChanged = true;
         if (bUseTexture == true)
         {
-            tex.loadData(pixels, width, height, GL_RGBA);
+            tex.loadData(pixels, width, height, pixelType);
         }
 
         bStarted = true;
@@ -1063,13 +1085,13 @@ void goVideoPlayer::forceTextureUpload()  	// added by gameover
 	myDrawCompleteProc = NewMovieDrawingCompleteUPP (DrawCompleteProc);
     SetMovieDrawingCompleteProc (moviePtr, movieDrawingCallWhenChanged,  myDrawCompleteProc, (long)this);
 
-    tex.allocate(width,height,GL_RGBA);
+    tex.allocate(width,height,pixelType);
 
 #if defined(TARGET_OSX) && defined(__BIG_ENDIAN__)
     convertPixels(offscreenGWorldPixels, pixels, width, height, pixelType);
 #endif
 
-    tex.loadData(pixels, width, height, GL_RGBA);
+    tex.loadData(pixels, width, height, pixelType);
 }
 
 //------------------------------------

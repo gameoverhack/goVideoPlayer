@@ -110,11 +110,12 @@ public:
     //--------------------------------------
 
     int					nFrames;				// number of frames
-    unsigned char * 	pixels;					// 24 bit: rgb
+    unsigned char * 	pixels;					// 24 bit: rgb or 32 bit use setPixelFormat
     bool 				bHavePixelsChanged;
     ofTexture 			tex;					// a ptr to the texture we are utilizing
     bool 				bUseTexture;			// are we using a texture
     bool				allocated;				// so we know to free pixels or not
+    goPixelType         pixelType;
 
 protected:
 
@@ -127,8 +128,6 @@ protected:
     bool 				bIsFrameNew;			// if we are new
 
 	string				currentFileName;
-	goPixelType         pixelType;
-
 
 };
 #endif

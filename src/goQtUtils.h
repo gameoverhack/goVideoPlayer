@@ -28,8 +28,8 @@
 #endif
 
 enum goPixelType {
-    GO_TV_RGB,
-    GO_TV_RGBA
+    GO_TV_RGB = GL_RGB,
+    GO_TV_RGBA = GL_RGBA
 };
 
 //-------------------------- helpful for rgba->rgb conversion
