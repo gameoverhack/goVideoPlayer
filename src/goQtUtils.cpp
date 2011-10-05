@@ -48,17 +48,12 @@ void closeQuicktime(){
 
 
 //----------------------------------------
-void convertPixels(unsigned char * gWorldPixels, unsigned char * rgbPixels, int w, int h){
+void convertPixels(unsigned char * gWorldPixels, unsigned char * rgbPixels, int w, int h, PixelType _pixelType){
 
 	// ok for macs?
 	// ok for intel macs?
 
 	int * rgbaPtr 			= (int *) gWorldPixels;
-#ifdef USE_ALPHA_CHANNELS
-	pix32 * rgbPtr 			= (pix32 *) rgbPixels;
-#else
-    pix24 * rgbPtr 			= (pix24 *) rgbPixels;
-#endif
 	unsigned char * rgbaStart;
 
 	//	putting in the boolean, so we can work on
@@ -74,57 +69,71 @@ void convertPixels(unsigned char * gWorldPixels, unsigned char * rgbPixels, int 
 	// if we upload and drawf the data as is
 	// it will be upside-down....
 	// -------------------------------------------
-#ifdef USE_ALPHA_CHANNELS
-	if (!bFlipVertically){
-		//----- argb->rgb
-		cout << "flip vertical" <<endl;
-		for (int i = 0; i < h; i++){
-			pix32 * rgbPtr = (pix32 *) rgbPixels + ((i) * w);
-			for (int j = 0; j < w; j++){
-				rgbaStart = (unsigned char *)rgbaPtr;
-				memcpy (rgbPtr, rgbaStart+1, sizeof(pix32));
-				rgbPtr++;
-				rgbaPtr++;
-			}
-		}
-	} else {
-		//----- flip while argb->rgb
-		cout << "normal flip" <<endl;
-		for (int i = 0; i < h; i++){
-			pix32 * rgbPtr = (pix32 *) rgbPixels + ((h-i-1) * w);
-			for (int j = 0; j < w; j++){
-				rgbaStart = (unsigned char *)rgbaPtr;
-				memcpy (rgbPtr, rgbaStart+1, sizeof(pix32));
-				rgbPtr++;
-				rgbaPtr++;
-			}
-		}
-	}
-#else
-	if (!bFlipVertically){
-		//----- argb->rgb
-		for (int i = 0; i < h; i++){
-			pix24 * rgbPtr 			= (pix24 *) rgbPixels + ((i) * w);
-			for (int j = 0; j < w; j++){
-				rgbaStart = (unsigned char *)rgbaPtr;
-				memcpy (rgbPtr, rgbaStart+1, sizeof(pix24));
-				rgbPtr++;
-				rgbaPtr++;
-			}
-		}
-	} else {
-		//----- flip while argb->rgb
-		for (int i = 0; i < h; i++){
-			pix24 * rgbPtr 			= (pix24 *) rgbPixels + ((h-i-1) * w);
-			for (int j = 0; j < w; j++){
-				rgbaStart = (unsigned char *)rgbaPtr;
-				memcpy (rgbPtr, rgbaStart+1, sizeof(pix24));
-				rgbPtr++;
-				rgbaPtr++;
-			}
-		}
-	}
-#endif
+    switch (_pixelType) {
+
+        case GO_TV_RGBA:
+        {
+
+            goPix32 * rgbPtr 			= (goPix32 *) rgbPixels;
+            if (!bFlipVertically){
+                //----- argb->rgb
+                cout << "flip vertical" <<endl;
+                for (int i = 0; i < h; i++){
+                    goPix32 * rgbPtr = (goPix32 *) rgbPixels + ((i) * w);
+                    for (int j = 0; j < w; j++){
+                        rgbaStart = (unsigned char *)rgbaPtr;
+                        memcpy (rgbPtr, rgbaStart+1, sizeof(goPix32));
+                        rgbPtr++;
+                        rgbaPtr++;
+                    }
+                }
+            } else {
+                //----- flip while argb->rgb
+                cout << "normal flip" <<endl;
+                for (int i = 0; i < h; i++){
+                    goPix32 * rgbPtr = (goPix32 *) rgbPixels + ((h-i-1) * w);
+                    for (int j = 0; j < w; j++){
+                        rgbaStart = (unsigned char *)rgbaPtr;
+                        memcpy (rgbPtr, rgbaStart+1, sizeof(goPix32));
+                        rgbPtr++;
+                        rgbaPtr++;
+                    }
+                }
+            }
+
+            break;
+        }
+        case GO_TV_RGB:
+        {
+
+            goPix24 * rgbPtr 			= (goPix24 *) rgbPixels;
+            if (!bFlipVertically){
+                //----- argb->rgba
+                for (int i = 0; i < h; i++){
+                    goPix24 * rgbPtr 			= (goPix24 *) rgbPixels + ((i) * w);
+                    for (int j = 0; j < w; j++){
+                        rgbaStart = (unsigned char *)rgbaPtr;
+                        memcpy (rgbPtr, rgbaStart+1, sizeof(goPix24));
+                        rgbPtr++;
+                        rgbaPtr++;
+                    }
+                }
+            } else {
+                //----- flip while argb->rgb
+                for (int i = 0; i < h; i++){
+                    goPix24 * rgbPtr 			= (goPix24 *) rgbPixels + ((h-i-1) * w);
+                    for (int j = 0; j < w; j++){
+                        rgbaStart = (unsigned char *)rgbaPtr;
+                        memcpy (rgbPtr, rgbaStart+1, sizeof(goPix24));
+                        rgbPtr++;
+                        rgbaPtr++;
+                    }
+                }
+            }
+            break;
+        }
+    }
+
 }
 
 

@@ -23,7 +23,6 @@ class goVideoPlayer : public ofBaseVideo
 
 public:
 
-
     goVideoPlayer ();
     virtual ~goVideoPlayer();
 #if OF_VERSION > 6
@@ -51,6 +50,9 @@ public:
     float 				getSpeed();
     float 				getDuration();
     bool				getIsMovieDone();
+
+    goPixelType         getPixelType();
+    void                setPixelType(goPixelType _pixelType);
 
     void 				setPosition(float pct);
     void 				setVolume(int volume);
@@ -125,6 +127,7 @@ protected:
     bool 				bIsFrameNew;			// if we are new
 
 	string				currentFileName;
+	goPixelType         pixelType;
 
 
 };

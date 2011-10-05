@@ -27,28 +27,31 @@
 #define p2cstr(aStr) CFStringGetCStringPtr(CFStringCreateWithPascalString(NULL, aStr, kCFStringEncodingMacRoman),kCFStringEncodingMacRoman)
 #endif
 
-#ifdef USE_ALPHA_CHANNELS
+enum goPixelType {
+    GO_TV_RGB,
+    GO_TV_RGBA
+};
+
 //-------------------------- helpful for rgba->rgb conversion
 typedef struct{
 	unsigned char a;
 	unsigned char r;
 	unsigned char g;
 	unsigned char b;
-} pix32;
-#else
+} goPix32;
+
 //-------------------------- helpful for rgba->rgb conversion
 typedef struct{
 	unsigned char r;
 	unsigned char g;
 	unsigned char b;
-} pix24;
-#endif
+} goPix24;
 
 //----------------------------------------
 
 void 		initializeQuicktime();
 void 		closeQuicktime();
-void 		convertPixels(unsigned char * gWorldPixels, unsigned char * rgbPixels, int w, int h);
+void 		convertPixels(unsigned char * gWorldPixels, unsigned char * rgbPixels, int w, int h, PixelType _pixelType = GO_TV_RGB);
 Boolean 	SeqGrabberModalFilterUPP(DialogPtr theDialog, const EventRecord *theEvent, short *itemHit, long refCon);
 OSErr           IsMPEGMediaHandler(MediaHandler inMediaHandler, Boolean *outIsMPEG);
 ComponentResult MPEGMediaGetStaticFrameRate(MediaHandler inMPEGMediaHandler, Fixed *outStaticFrameRate);

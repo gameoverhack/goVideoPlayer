@@ -152,7 +152,7 @@ goVideoPlayer::goVideoPlayer ()
     pixels						= NULL;
     nFrames						= 0;
     bPaused						= false;
-
+    pixelType                   = GO_TV_RGB;
 
 
     //--------------------------------------------------------------
@@ -656,6 +656,16 @@ void goVideoPlayer::stop()
 }
 
 //--------------------------------------------------------
+void goVideoPlayer::setPixelType(goPixelType _pixelType) {
+    pixelType = _pixelType;
+}
+
+//--------------------------------------------------------
+goPixelType goVideoPlayer::getPixelType() {
+    return pixelType;
+}
+
+//--------------------------------------------------------
 void goVideoPlayer::setPan(float pan)
 {
 
@@ -1056,7 +1066,7 @@ void goVideoPlayer::forceTextureUpload()  	// added by gameover
     tex.allocate(width,height,GL_RGBA);
 
 #if defined(TARGET_OSX) && defined(__BIG_ENDIAN__)
-    convertPixels(offscreenGWorldPixels, pixels, width, height);
+    convertPixels(offscreenGWorldPixels, pixels, width, height, pixelType);
 #endif
 
     tex.loadData(pixels, width, height, GL_RGBA);
