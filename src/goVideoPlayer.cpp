@@ -326,8 +326,6 @@ goVideoPlayer::~goVideoPlayer()
     if(allocated)	{
         delete [] pixels;
         pixels = NULL; // added by gameover - make sure those pixels are truly deleted
-    }
-    if(allocated) {
         delete [] offscreenGWorldPixels;
         offscreenGWorldPixels = NULL; // added by gameover - make sure those pixels are truly deleted
     }
@@ -499,7 +497,7 @@ bool goVideoPlayer::loadMovie(string name, bool loadedInThread)
     MoviesTask(moviePtr,0);
 
 #if defined(TARGET_OSX) && defined(__BIG_ENDIAN__)
-    convertPixels(offscreenGWorldPixels, pixels, width, height);
+    convertPixels(offscreenGWorldPixels, pixels, width, height, pixelType);
 #endif
 
     if (bUseTexture == true)
@@ -680,6 +678,12 @@ void goVideoPlayer::stop()
 //--------------------------------------------------------
 void goVideoPlayer::setPixelType(goPixelType _pixelType) {
     pixelType = _pixelType;
+//    if(width != 0 && height != 0) {
+//        delete [] pixels;
+//        delete [] offscreenGWorldPixels;
+//        if ((offscreenGWorld)) DisposeGWorld((offscreenGWorld));
+//        createImgMemAndGWorld();
+//    }
 }
 
 //--------------------------------------------------------
