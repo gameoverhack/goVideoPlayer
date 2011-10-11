@@ -484,9 +484,11 @@ bool goVideoPlayer::loadMovie(string name, bool loadedInThread)
     }
 
     //----------------- callback method
-	if (!loadedInThread) {
+
 		myDrawCompleteProc = NewMovieDrawingCompleteUPP (DrawCompleteProc);
 		SetMovieDrawingCompleteProc (moviePtr, movieDrawingCallWhenChanged,  myDrawCompleteProc, (long)this);
+
+    if (!loadedInThread) {
 		nFrames = 0;
 		getTotalNumFrames(); // hmmm...putting this here so things load uber quick in threads but might break things if you check duration before playing?
 	}
@@ -497,10 +499,10 @@ bool goVideoPlayer::loadMovie(string name, bool loadedInThread)
     MoviesTask(moviePtr,0);
 
 #if defined(TARGET_OSX) && defined(__BIG_ENDIAN__)
-    convertPixels(offscreenGWorldPixels, pixels, width, height, pixelType);
+    if (!loadedInThread) convertPixels(offscreenGWorldPixels, pixels, width, height, pixelType);
 #endif
 
-    if (bUseTexture == true)
+    if (bUseTexture == true && !loadedInThread)
     {
         tex.loadData(pixels, width, height, pixelType);
     }
@@ -1085,9 +1087,6 @@ void goVideoPlayer::togglePaused() {
 //------------------------------------
 void goVideoPlayer::forceTextureUpload()  	// added by gameover
 {
-
-	myDrawCompleteProc = NewMovieDrawingCompleteUPP (DrawCompleteProc);
-    SetMovieDrawingCompleteProc (moviePtr, movieDrawingCallWhenChanged,  myDrawCompleteProc, (long)this);
 
     tex.allocate(width,height,pixelType);
 
