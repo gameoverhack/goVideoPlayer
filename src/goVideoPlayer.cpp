@@ -153,7 +153,7 @@ goVideoPlayer::goVideoPlayer ()
     nFrames						= 0;
     bPaused						= false;
     pixelType                   = GO_TV_RGB;
-
+    volume                      = 256;
 
     //--------------------------------------------------------------
 #ifndef  TARGET_LINUX  // !linux = quicktime...
@@ -715,8 +715,10 @@ void goVideoPlayer::setPan(float pan)
 }
 
 //--------------------------------------------------------
-void goVideoPlayer::setVolume(int volume)
+void goVideoPlayer::setVolume(int vol)
 {
+
+    volume = vol;
 
     //--------------------------------------
 #ifdef OF_VIDEO_PLAYER_QUICKTIME
@@ -815,7 +817,7 @@ void goVideoPlayer::setPosition(float pct)
 }
 
 //---------------------------------------------------------------------------
-void goVideoPlayer::setFrame(int frame)
+void goVideoPlayer::setFrame(int frame, bool noPause)
 {
 
     //--------------------------------------
@@ -830,7 +832,7 @@ void goVideoPlayer::setFrame(int frame)
     // seems that freezing, doing this and unfreezing seems to work alot
     // better then just SetMovieTimeValue() ;
 
-    if (!bPaused) SetMovieRate(moviePtr, X2Fix(0));
+    if (!bPaused && !noPause) SetMovieRate(moviePtr, X2Fix(0));
 
     // this is better with mpeg, etc:
     double frameRate = 0;
@@ -846,7 +848,7 @@ void goVideoPlayer::setFrame(int frame)
         MoviesTask(moviePtr,0);
     }
 
-    if (!bPaused) SetMovieRate(moviePtr, X2Fix(speed));
+    if (!bPaused && !noPause) SetMovieRate(moviePtr, X2Fix(speed));
 
     //--------------------------------------
 #else
@@ -908,6 +910,12 @@ float goVideoPlayer::getPosition()
     //--------------------------------------
 
 
+}
+
+//--------------------------------------------------------
+int goVideoPlayer::getVolume()
+{
+    return volume;
 }
 
 //---------------------------------------------------------------------------

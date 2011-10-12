@@ -47,6 +47,7 @@ public:
     bool				isPlaying();
     unsigned char * 	getPixels();
     float 				getPosition();
+    int                 getVolume();
     float 				getSpeed();
     float 				getDuration();
     bool				getIsMovieDone();
@@ -55,11 +56,11 @@ public:
     void                setPixelType(goPixelType _pixelType);
 
     void 				setPosition(float pct);
-    void 				setVolume(int volume);
+    void 				setVolume(int vol);
     void				setPan(float pan);
     void 				setLoopState(int state);
     void   				setSpeed(float speed);
-    void				setFrame(int frame);  // frame 0 = first frame...
+    void				setFrame(int frame, bool noPause = false);  // frame 0 = first frame...
 
     void 				setUseTexture(bool bUse);
     ofTexture &			getTextureReference();
@@ -129,5 +130,6 @@ protected:
 
 	string				currentFileName;
 
+    int                 volume;
 };
 #endif
